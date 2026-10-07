@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cele+ · Twoje cele i rozwój</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>" />
+  <script src="vendor/chart.umd.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">◎</span>
+      <div>
+        <h1>Cele<span class="accent">+</span></h1>
+        <p class="tagline">Wyznaczaj cele. Obserwuj swój rozwój.</p>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-view="goals" role="tab">🎯 Cele</button>
+      <button class="tab" data-view="stats" role="tab">📈 Postępy</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Statystyki w skrócie -->
+    <section class="stat-row" id="stat-row">
+      <div class="stat-tile">
+        <span class="stat-label">Poziom</span>
+        <span class="stat-value" id="stat-level">1</span>
+        <div class="xp-bar"><div class="xp-fill" id="xp-fill"></div></div>
+        <span class="stat-sub" id="stat-xp">0 XP</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-label">Seria dni</span>
+        <span class="stat-value"><span id="stat-streak">0</span> 🔥</span>
+        <span class="stat-sub">dni z wykonanym celem</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-label">Dzisiaj</span>
+        <span class="stat-value" id="stat-today">0/0</span>
+        <span class="stat-sub">celów dziennych zrobione</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-label">Skuteczność (30 dni)</span>
+        <span class="stat-value" id="stat-rate">0%</span>
+        <span class="stat-sub">wykonanych celów</span>
+      </div>
+    </section>
+
+    <!-- WIDOK: CELE -->
+    <section class="view active" id="view-goals">
+      <div class="layout">
+        <div class="col-main">
+          <div class="period-tabs" id="period-tabs">
+            <button class="chip active" data-period="day">Dzień</button>
+            <button class="chip" data-period="week">Tydzień</button>
+            <button class="chip" data-period="month">Miesiąc</button>
+            <button class="chip" data-period="year">Rok</button>
+          </div>
+          <h2 class="period-title" id="period-title">Dzisiaj</h2>
+          <div id="goal-list" class="goal-list"></div>
+
+          <details class="card add-card">
+            <summary>➕ Dodaj cel ręcznie</summary>
+            <form id="add-form" class="add-form">
+              <label class="full">Cel
+                <input name="title" required placeholder="np. Zjem 120 g białka" maxlength="120" />
+              </label>
+              <label>Okres
+                <select name="period">
+                  <option value="day">Dzień</option>
+                  <option value="week">Tydzień</option>
+                  <option value="month">Miesiąc</option>
+                  <option value="year">Rok</option>
+                </select>
+              </label>
+              <label>Kategoria
+                <select name="category"></select>
+              </label>
+              <label>Wartość docelowa <small>(opcjonalnie)</small>
+                <input name="target" type="number" min="0" step="any" placeholder="120" />
+              </label>
+              <label>Jednostka
+                <input name="unit" placeholder="g, stron, km…" maxlength="20" />
+              </label>
+              <label class="check full">
+                <input type="checkbox" name="recurring" /> Powtarzaj w każdym okresie
+              </label>
+              <button class="btn primary full" type="submit">Dodaj cel</button>
+            </form>
+          </details>
+        </div>
+
+        <!-- Asystent AI -->
+        <aside class="col-side">
+          <div class="card assistant">
+            <div class="assistant-head">
+              <div>
+                <h3>Asystent AI</h3>
+                <p class="muted" id="ai-mode">Powiedz, co chcesz osiągnąć</p>
+              </div>
+              <span class="badge" id="ai-badge">…</span>
+            </div>
+            <div class="chat" id="chat">
+              <div class="msg bot">Cześć! 👋 Kliknij mikrofon i powiedz np.:<br>
+                <em>„Dzisiaj zjem 120 gram białka, w tym tygodniu nauczę się do olimpiady AI, a w tym miesiącu zbuduję część elektroniczną.”</em><br>
+                Później możesz powiedzieć: <em>„Zjadłem 40 gram białka”</em> albo <em>„Skończyłem naukę do olimpiady”</em>.
+              </div>
+            </div>
+            <div class="mic-wrap">
+              <button class="mic" id="mic-btn" aria-label="Mów do asystenta">
+                <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path fill="currentColor" d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-2.08A7 7 0 0 0 19 12h-2Z"/></svg>
+              </button>
+              <p class="mic-hint" id="mic-hint">Naciśnij i mów</p>
+            </div>
+            <form class="chat-input" id="chat-form">
+              <input id="chat-text" placeholder="…albo wpisz polecenie" autocomplete="off" />
+              <button class="btn primary" type="submit">Wyślij</button>
+            </form>
+            <label class="check small"><input type="checkbox" id="speak-toggle" checked /> Czytaj odpowiedzi na głos</label>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- WIDOK: POSTĘPY -->
+    <section class="view" id="view-stats">
+      <div class="charts-grid">
+        <div class="card chart-card wide">
+          <div class="chart-head">
+            <h3>Twój rozwój — zdobyte XP</h3>
+            <p class="muted">Suma punktów doświadczenia za wykonane cele (ostatnie 30 dni)</p>
+          </div>
+          <div class="chart-box"><canvas id="chart-xp"></canvas></div>
+        </div>
+        <div class="card chart-card">
+          <div class="chart-head">
+            <h3>Skuteczność celów dziennych</h3>
+            <p class="muted">% wykonanych celów każdego dnia</p>
+          </div>
+          <div class="chart-box"><canvas id="chart-rate"></canvas></div>
+        </div>
+        <div class="card chart-card">
+          <div class="chart-head">
+            <h3>Bieżące okresy</h3>
+            <p class="muted">Średni postęp celów w trwającym dniu, tygodniu, miesiącu i roku</p>
+          </div>
+          <div class="chart-box"><canvas id="chart-periods"></canvas></div>
+        </div>
+        <div class="card chart-card">
+          <div class="chart-head">
+            <h3>Wykonane cele wg kategorii</h3>
+            <p class="muted">Wszystkie zrealizowane cele</p>
+          </div>
+          <div class="chart-box"><canvas id="chart-categories"></canvas></div>
+        </div>
+        <div class="card chart-card">
+          <div class="chart-head">
+            <h3>Cele mierzalne</h3>
+            <p class="muted">Ostatnie wyniki — np. gramy białka dziennie</p>
+          </div>
+          <select id="metric-select" class="metric-select"></select>
+          <div class="chart-box"><canvas id="chart-metric"></canvas></div>
+        </div>
+        <div class="card chart-card wide">
+          <div class="chart-head">
+            <h3>Kalendarz aktywności</h3>
+            <p class="muted">Im ciemniejszy kolor, tym więcej celów wykonanych danego dnia (ostatnie 26 tygodni)</p>
+          </div>
+          <div class="heatmap" id="heatmap"></div>
+          <div class="heat-legend"><span>mniej</span><i class="h0"></i><i class="h1"></i><i class="h2"></i><i class="h3"></i><i class="h4"></i><span>więcej</span></div>
+        </div>
+      </div>
+      <div class="data-actions">
+        <button class="btn ghost" id="demo-btn">Wczytaj przykładowe dane</button>
+        <button class="btn ghost" id="export-btn">Eksportuj dane (JSON)</button>
+        <button class="btn ghost danger" id="reset-btn">Wyczyść wszystko</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
